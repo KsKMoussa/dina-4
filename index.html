@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Preguntas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        #container {
+            display: flex;
+            flex-direction: column; /* Cambio aquí para alineación vertical */
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        #question-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #question-container {
+            margin-bottom: 20px;
+            font-size: 24px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+        }
+        #answers-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 50%;
+            margin: 0 auto;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+        .answer-box {
+            width: calc(50% - 10px);
+            padding: 20px;
+            margin: 5px;
+            background-color: #fff;
+            border: 2px solid #a0d1fb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, font-size 0.3s, color 0.3s;
+            font-size: 1em;
+            color: #333;
+            font-weight: bold;
+        }
+        .question-number:hover {
+            background-color: #f0f8ff;
+            border-color: #999;
+        }
+        .correct {
+            background-color: #4caf50 !important;
+            color: #fff !important;
+        }
+        .incorrect {
+            background-color: #f44336 !important;
+            color: #fff !important;
+        }
+        #rectangles-container {
+            display: flex;
+            flex-wrap: wrap; /* Permite el ajuste flexible de los rectángulos */
+            gap: 15px;
+            justify-content: center; /* Asegura que los rectángulos estén centrados */
+        }
+        .rectangle {
+            width: 70px; /* Ajuste de tamaño */
+            height: 100px; /* Ajuste de tamaño */
+            background-color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 2em;
+        }
+        .large-emoji {
+            font-size: 3em;
+        }
+        #controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+<audio id="correct-sound" src="training-program-correct2-88734.mp3" preload="auto"></audio>
+<audio id="incorrect-sound" src="negative_beeps-6008.mp3" preload="auto"></audio>
+
+    <div id="container">
+        <div id="question-block">
+            <div id="question-container"></div>
+            <div id="answers-container">
+                <div class="answer-box" onclick="checkAnswer(this)"></div>
+                <div class="answer-box" onclick="checkAnswer(this)"></div>
+                <div class="answer-box" onclick="checkAnswer(this)"></div>
+            </div>
+            <button id="nextQuestionButton">
+                <i class="fas fa-arrow-right"></i> 🔃
+            </button>
+        </div>
+        <div id="rectangles-container">
+            <div id="controls">
+                <button onclick="moveTurtle()" style="background-color: #e3f2fd; color: white;">🔺</button>
+                <button onclick="moveRabbit()" style="background-color: #e3f2fd; color: white;">➡️</button>
+            </div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+            <div class="rectangle large-emoji"></div>
+        </div>
+    </div>
+    <script>
+
+        const questions = [
+            { question: "Las pólizas de Ramos Técnicos de Ingeniería se caracterizan por", answers: ["Ampara los gastos médicos en que pueda incurrir el asegurado a causa de una enfermedad.", "Estar diseñadas para cubrir toda clase de riesgo en construcción.", "Amparar los gastos por los servicios de rotura de vidrios para el automóvil del asegurado titular."], correct: "Estar diseñadas para cubrir toda clase de riesgo en construcción."},
+            { question: "¿Cuál de los siguientes bienes puede ser asegurable por el Seguro de Equipo Contratista?", answers: ["Automóviles", "Plano", "Excavadoras"], correct: "Excavadoras" },
+            { question: "Es una cobertura incluida en el seguro de montaje", answers: ["Robo de equipo", "Responsabilidad civil", "Ambas"], correct: "Ambas" },
+            { question: "Se va a desarrollar un espectáculo en el poliedro y se requiere montar la tarima. que tipo de seguro se requiere", answers: ["Todo riesgo construcción", "Montaje", "Equipo de contratista"], correct: "Montaje" },
+            { question: "Se cubren los bienes : maquina de perforación, Grúas, Retroexcavadoras. El seguro es:", answers: ["Todo riesgo construcción", "Montaje", "Equipo de contratista"], correct: "Equipo de contratista" },            { question: "Esta póliza consiste en la indemnización de las pérdidas o daños materiales  causados a los bienes asegurados portadores de datos ", answers: ["Todo riesgo construcción", "Equipo Electrónico", "Equipo de contratista"], correct: "Equipo Electrónico" },
+            { question: "Avisos luminosos, animales finos, armas de fuego. Son asegurables con:", answers: ["Seguro de Incendio", "Seguro de sustracción ilegítima", "Riesgos Diversos"], correct: "Riesgos Diversos" },
+ { question: "Seguro que cubre el daño en los dispositivos de almacenamiento externos y/o internos", answers: ["Todo riesgo construcción", "Equipo Electrónico", "Equipo de contratista"], correct: "Equipo Electrónico" },
+            { question: "Este seguro ampara cualquier acto fraudulento, como desfalco, falsificación, que produzcan perjuicios económicos comprobables, cometidos por  empleados al servicio del asegurado ", answers: ["Seguro Patronal", "Seguro de sustracción ilegítima", "Seguro de Fidelidad"], correct: "Seguro de Fidelidad" },
+            { question: "Seguro marítimo y seguro de aviación corresponde a:", answers: ["Seguro de Naves", "Seguro de sustracción ilegítima", "Seguro de equipo electrónico"], correct: "Seguro de Naves" },
+            { question: "El seguro de aviación cubre la pérdida total, así como los daños físicos sufridos por la aeronave asegurada ante algún siniestro ocasionado de manera imprevista. La cobertura incluye también :", answers: ["Lucro Cesante", "Responsabilidad Civil", "Secuestro"], correct: "Responsabilidad Civil" },
+            { question: "se puede considerar como La Aseguradora de la compañía de seguros.:", answers: ["Afianzadora", "Capital social", "Reaseguro"], correct: "Reaseguro" },
+            { question: "Es el acto voluntario del capitán, quien frente a un peligro inminente y cierto, decide sacrificar parte de los intereses  involucrados en la travesía marítima, :", answers: ["Sacrificio Heroico", "Avería Gruesa", "Abandono de emergencia"], correct: "Avería Gruesa" },
+            { question: "Tipos de Seguros de Transporte", answers: ["Aéreo", "Terrestre", "Ambas"], correct: "Ambas" },
+ { question: "Solo cubre el transporte de un solo embarque, desde el despacho a la llegada", answers: ["Ocasional", "Declarativa", "Instructiva"], correct: "Ocasional" },
+ { question: "desarrollados y publicados por la Cámara de Comercio Internacional en 1936 por primera vez", answers: ["OMC", "INCOTERMS", "ONU"], correct: "INCOTERMS" },
+ { question: "es un contrato por el cual una aseguradora, mediante el cobro de una prima, protege EL ACREEDOR contra el incumplimiento de una obligación específica a cargo DEL DEUDOR  o del FIADO", answers: ["Seguro de Fidelidad", "Lucro Cesante", "Fianzas"], correct: "Fianzas" },
+ { question: "Garantiza el fiel, cabal y oportuno cumplimiento de todas las obligaciones contractuales, por adquisición de bienes, prestación de servicios y/o ejecución de obras.", answers: ["Fianza de Fiel cumplimiento", "Fianza Judicial", "Fianza de Anticipo"], correct: "Fianza de Fiel cumplimiento" },
+ { question: "es aquella fianza en que a virtud de mandamiento judicial, se ordena, a una de las partes litigantes, proporcione fiador, para fines del procedimiento.", answers: ["Fianza de Fiel cumplimiento", "Fianza Judicial", "Fianza de Anticipo"], correct: "Fianza Judicial" }
+
+        ];
+
+        let currentQuestionIndex = 0;
+
+        function showQuestion() {
+            const questionElement = document.getElementById('question-container');
+            const answerElements = document.querySelectorAll('.answer-box');
+            const currentQuestion = questions[currentQuestionIndex];
+            questionElement.innerText = currentQuestion.question;
+            currentQuestion.answers.forEach((answer, index) => {
+                answerElements[index].innerText = answer;
+                answerElements[index].classList.remove('correct', 'incorrect');
+            });
+        }
+
+        function playSound(isCorrect) {
+            const audio = new Audio(isCorrect ? 'correct-sound.mp3' : 'incorrect-sound.mp3');
+            audio.play();
+        }
+
+        function checkAnswer(element) {
+            const selectedAnswer = element.innerText;
+            const currentQuestion = questions[currentQuestionIndex];
+            const isCorrect = selectedAnswer === currentQuestion.correct;
+            element.classList.add(isCorrect ? 'correct' : 'incorrect');
+            playSound(isCorrect);
+        }
+
+        function cambiarPregunta() {
+            currentQuestionIndex = (currentQuestionIndex + 1) % questions.length;
+            showQuestion();
+        }
+
+        document.getElementById('nextQuestionButton').addEventListener('click', cambiarPregunta);
+
+        // Inicializa la primera pregunta
+        showQuestion();
+
+        let turtlePosition = 0;
+        let rabbitPosition = 0;
+
+
+        function moveTurtle() {
+            const turtleRectangles = document.querySelectorAll('.rectangle');
+            turtleRectangles[turtlePosition].innerText = turtleRectangles[turtlePosition].innerText.replace('🦖', '');
+            turtlePosition = (turtlePosition + 1) % 10;
+            turtleRectangles[turtlePosition].innerText += '🦖';
+            
+    // Verifica si la tortuga ha llegado al último rectángulo
+    if (turtlePosition === 9) {
+        turtleRectangles[turtlePosition].style.backgroundColor = 'yellow';  // Cambia el fondo a amarillo
+        playVictorySound();
+    }
+        }
+
+        function moveRabbit() {
+            const rabbitRectangles = document.querySelectorAll('.rectangle');
+            rabbitRectangles[rabbitPosition].innerText = rabbitRectangles[rabbitPosition].innerText.replace('🐇', '');
+            rabbitPosition = (rabbitPosition + 1) % 10;
+            rabbitRectangles[rabbitPosition].innerText += '🐇';
+                if (rabbitPosition === 9) {
+        rabbitRectangles[rabbitPosition].style.backgroundColor = 'yellow';  // Cambia el fondo a amarillo
+        playVictorySound();
+    }
+        }
+
+        function playVictorySound() {
+    const audio = new Audio('victory.mp3');
+    audio.play();
+}
+
+function playSound(isCorrect) {
+    const correctSound = document.getElementById('correct-sound');
+    const incorrectSound = document.getElementById('incorrect-sound');
+    if (isCorrect) {
+        correctSound.play();
+    } else {
+        incorrectSound.play();
+    }
+}
+
+
+    </script>
+</body>
+</html>
+
+
+
+
